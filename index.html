@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>均均接送點名</title>
+<title>均均接送點名系統</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -34,21 +35,22 @@
   .toolbar { padding: 0 1.5rem 1.5rem; display: flex; gap: 8px; flex-wrap: wrap; }
   .btn { padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border2); background: white; cursor: pointer; font-size: 14px; }
   .btn-add { background: #E1F5EE; color: #085041; border-color: #5DCAA5; }
-  .btn-reset { color: #993C1D; font-weight: 600; margin-left: auto; }
+  .btn-reset { color: #993C1D; font-weight: 600; }
+  .btn-file { background: #f0f0f0; }
 
   table { width: 100%; border-collapse: collapse; }
   td { padding: 18px 15px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   .name-td { font-size: 22px; font-weight: 800; }
-  
-  /* 刪除按鈕樣式 */
   .del-btn { color: #ccc; border: none; background: none; font-size: 18px; cursor: pointer; padding: 5px; margin-left: 8px; }
-  .del-btn:hover { color: #ef4444; }
 
   .status-btns { display: flex; gap: 6px; }
   .sb { flex: 1; padding: 15px 0; border-radius: 10px; border: 1px solid var(--border); font-size: 15px; font-weight: bold; background: #fff; color: var(--text2); }
   .sb.active-present { background: #22c55e; color: white; border-color: #22c55e; }
   .sb.active-absent  { background: #ef4444; color: white; border-color: #ef4444; }
   .sb.active-leave   { background: #f59e0b; color: white; border-color: #f59e0b; }
+
+  /* 隱藏的檔案輸入框 */
+  #file-input { display: none; }
 
   .loading-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 99; display: flex; align-items: center; justify-content: center; }
 </style>
@@ -78,9 +80,12 @@
   </div>
 
   <div class="toolbar">
-    <input type="text" id="add-name" placeholder="快速加人..." style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border2); font-size:16px;">
+    <input type="text" id="add-name" placeholder="姓名..." style="width: 100px; padding:10px; border-radius:8px; border:1px solid var(--border2); font-size:16px;">
     <button class="btn btn-add" onclick="addStudent()">新增</button>
-    <button class="btn btn-reset" onclick="resetToday()">重置點名</button>
+    <button class="btn btn-file" onclick="document.getElementById('file-input').click()">匯入 Excel</button>
+    <button class="btn btn-file" onclick="exportToExcel()">匯出</button>
+    <button class="btn btn-reset" onclick="resetToday()">重置</button>
+    <input type="file" id="file-input" accept=".xlsx, .xls, .csv" onchange="importExcel(this)">
   </div>
 
   <table>
@@ -128,20 +133,59 @@ window.addStudent = async () => {
   el.value = '';
 };
 
-// 刪除學生的函式
 window.deleteStudent = async (key, name) => {
-  if (confirm(`確定要從名單中刪除「${name}」嗎？`)) {
+  if (confirm(`確定要刪除「${name}」嗎？`)) {
     await remove(ref(db, 'students/' + key));
   }
 };
 
 window.resetToday = async () => {
-  if (!confirm('確定要將所有點名狀態重置嗎？')) return;
+  if (!confirm('確定要重置點名狀態嗎？')) return;
   const updates = {};
   Object.keys(students).forEach(key => {
     updates['students/' + key + '/status'] = 'none';
   });
   await update(ref(db), updates);
+};
+
+// 匯出 Excel
+window.exportToExcel = () => {
+  const data = Object.values(students).map(s => {
+    let statusText = "未點名";
+    if(s.status === 'present') statusText = "已接到";
+    else if(s.status === 'absent') statusText = "缺席";
+    else if(s.status === 'leave') statusText = "請假";
+    return { "姓名": s.name, "今日狀態": statusText };
+  });
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "點名表");
+  XLSX.writeFile(wb, `點名紀錄_${new Date().toLocaleDateString()}.xlsx`);
+};
+
+// 匯入 Excel
+window.importExcel = (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(sheet);
+    
+    if (confirm(`偵測到 ${json.length} 位學生，確定要匯入嗎？`)) {
+      for (const row of json) {
+        const name = row['姓名'] || row['名字'] || row['Name'] || Object.values(row)[0];
+        if (name) {
+          await push(ref(db, 'students'), { name: String(name).trim(), status: 'none', note: '' });
+        }
+      }
+      alert('匯入完成！');
+    }
+    input.value = '';
+  };
+  reader.readAsArrayBuffer(file);
 };
 
 window.clearSearch = () => {
@@ -160,7 +204,7 @@ window.render = function() {
     <tr>
       <td class="name-td">
         ${s.name}
-        <button class="del-btn" onclick="deleteStudent('${s.key}', '${s.name}')" title="刪除學生">✕</button>
+        <button class="del-btn" onclick="deleteStudent('${s.key}', '${s.name}')">✕</button>
       </td>
       <td>
         <div class="status-btns">
