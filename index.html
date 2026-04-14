@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>安親班點名系統</title>
+<title>均均文理補習班點名系統</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -115,6 +115,48 @@
   @media print {
     .toolbar, .filter-tabs, .del-btn, .sb, .note-input, .modal-backdrop, .loading-overlay { display: none !important; }
   }
+ .status-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sb {
+  flex: 1;
+  padding: 12px 0;
+  font-size: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+/* 手機優化 */
+@media (max-width: 520px) {
+  .status-btns {
+    flex-direction: column;
+  }
+
+  .sb {
+    width: 100%;
+    font-size: 16px;
+    padding: 14px 0;
+  }
+}
+
+/* 顏色強化 */
+.sb.active-present {
+  background: #22c55e;
+  color: white;
+}
+
+.sb.active-absent {
+  background: #ef4444;
+  color: white;
+}
+
+.sb.active-leave {
+  background: #f59e0b;
+  color: white;
+}
 </style>
 </head>
 <body>
