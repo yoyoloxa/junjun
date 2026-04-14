@@ -26,14 +26,19 @@
   .header { padding: 1.25rem 1.25rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .title-block h1 { font-size: 20px; font-weight: 500; }
   .title-block p { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
   .date-badge { font-size: 13px; font-weight: 500; color: var(--text2); background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 6px 12px; white-space: nowrap; }
+  .sync-badge { font-size: 12px; padding: 4px 10px; border-radius: 99px; border: 0.5px solid var(--border); white-space: nowrap; }
+  .sync-badge.online  { background: #E1F5EE; color: #085041; border-color: #5DCAA5; }
+  .sync-badge.offline { background: #FAECE7; color: #712B13; border-color: #D85A30; }
+  .sync-badge.syncing { background: #FAEEDA; color: #633806; border-color: #EF9F27; }
 
   .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; padding: 1rem 1.25rem; }
   .stat { background: var(--bg2); border-radius: var(--radius); padding: 10px 12px; }
   .stat-num { font-size: 22px; font-weight: 500; }
   .stat-num.present { color: #0F6E56; }
-  .stat-num.absent { color: #993C1D; }
-  .stat-num.leave { color: #854F0B; }
+  .stat-num.absent  { color: #993C1D; }
+  .stat-num.leave   { color: #854F0B; }
   .stat-label { font-size: 12px; color: var(--text2); margin-top: 2px; }
 
   .toolbar { display: flex; align-items: center; gap: 8px; padding: 0 1.25rem 0.75rem; flex-wrap: wrap; }
@@ -41,7 +46,7 @@
   input[type=text]:focus { border-color: #1D9E75; }
   .btn { border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); border-radius: var(--radius); padding: 7px 14px; font-size: 13px; cursor: pointer; transition: background 0.12s; white-space: nowrap; }
   .btn:hover { background: var(--bg2); }
-  .btn-add { background: #E1F5EE; border-color: #5DCAA5; color: #085041; font-weight: 500; }
+  .btn-add    { background: #E1F5EE; border-color: #5DCAA5; color: #085041; font-weight: 500; }
   .btn-add:hover { background: #9FE1CB; }
   .btn-import { background: #E6F1FB; border-color: #85B7EB; color: #0C447C; font-weight: 500; }
   .btn-import:hover { background: #B5D4F4; }
@@ -61,14 +66,20 @@
   .sb { padding: 4px 10px; font-size: 12px; border-radius: 99px; border: 0.5px solid var(--border); background: transparent; cursor: pointer; color: var(--text2); transition: all 0.1s; }
   .sb:hover { background: var(--bg2); }
   .sb.active-present { background: #E1F5EE; color: #085041; border-color: #5DCAA5; font-weight: 500; }
-  .sb.active-absent { background: #FAECE7; color: #712B13; border-color: #D85A30; font-weight: 500; }
-  .sb.active-leave { background: #FAEEDA; color: #633806; border-color: #EF9F27; font-weight: 500; }
+  .sb.active-absent  { background: #FAECE7; color: #712B13; border-color: #D85A30; font-weight: 500; }
+  .sb.active-leave   { background: #FAEEDA; color: #633806; border-color: #EF9F27; font-weight: 500; }
 
   .note-input { width: 100%; border: 0.5px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text); background: var(--bg); }
   .note-input:focus { outline: none; border-color: var(--border2); }
   .del-btn { color: var(--text2); font-size: 14px; background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 4px; }
   .del-btn:hover { background: #FAECE7; color: #712B13; }
   .empty { text-align: center; color: var(--text2); font-size: 14px; padding: 2.5rem 0; }
+
+  /* Loading overlay */
+  .loading-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .loading-overlay p { font-size: 14px; color: var(--text2); }
+  .spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: #1D9E75; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Modal */
   .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
@@ -83,10 +94,7 @@
 
   .upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius-lg); padding: 2rem; text-align: center; cursor: pointer; transition: background 0.12s; }
   .upload-zone:hover, .upload-zone.drag { background: var(--bg2); }
-  .upload-zone p { font-size: 14px; color: var(--text2); margin-top: 8px; }
-  .upload-zone small { font-size: 12px; color: var(--text3); }
   #file-input { display: none; }
-
   .col-map { margin-top: 1rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--text2); }
   .col-map select { background: var(--bg); color: var(--text); border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 5px 8px; font-size: 13px; outline: none; }
   .preview-wrap { overflow-x: auto; margin-top: 0.75rem; }
@@ -94,12 +102,10 @@
   .preview-table th, .preview-table td { padding: 4px 10px; border-bottom: 0.5px solid var(--border); text-align: left; }
   .preview-table th { color: var(--text2); font-weight: 500; }
   .import-result { font-size: 13px; margin-top: 8px; color: #0F6E56; }
-
   .paste-hint { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
   .paste-hint code { background: var(--bg2); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
   textarea { width: 100%; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 10px; font-size: 14px; color: var(--text); background: var(--bg); resize: vertical; min-height: 140px; outline: none; font-family: inherit; }
   textarea:focus { border-color: #1D9E75; }
-
   .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; align-items: center; }
 
   @media (max-width: 520px) {
@@ -107,32 +113,42 @@
     th:nth-child(5), td:nth-child(5) { display: none; }
   }
   @media print {
-    .toolbar, .filter-tabs, .del-btn, .sb, .note-input, .modal-backdrop { display: none !important; }
+    .toolbar, .filter-tabs, .del-btn, .sb, .note-input, .modal-backdrop, .loading-overlay { display: none !important; }
   }
 </style>
 </head>
 <body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <p>連線雲端資料庫中...</p>
+</div>
+
 <div class="app">
   <div class="header">
     <div class="title-block">
       <h1>安親班點名系統</h1>
       <p>快樂學習安親班</p>
     </div>
-    <div class="date-badge" id="date-badge"></div>
+    <div class="header-right">
+      <div class="date-badge" id="date-badge"></div>
+      <div class="sync-badge syncing" id="sync-badge">⏳ 連線中...</div>
+    </div>
   </div>
 
   <div class="stats">
     <div class="stat"><div class="stat-num" id="total-count">0</div><div class="stat-label">總人數</div></div>
     <div class="stat"><div class="stat-num present" id="present-count">0</div><div class="stat-label">到班</div></div>
-    <div class="stat"><div class="stat-num absent" id="absent-count">0</div><div class="stat-label">缺席</div></div>
-    <div class="stat"><div class="stat-num leave" id="leave-count">0</div><div class="stat-label">請假</div></div>
+    <div class="stat"><div class="stat-num absent"  id="absent-count">0</div><div class="stat-label">缺席</div></div>
+    <div class="stat"><div class="stat-num leave"   id="leave-count">0</div><div class="stat-label">請假</div></div>
   </div>
 
   <div class="toolbar">
     <input type="text" id="search-input" placeholder="搜尋姓名或班級..." style="width:160px;" />
-    <input type="text" id="add-name" placeholder="新增學生姓名" style="width:130px;" />
+    <input type="text" id="add-name"  placeholder="新增學生姓名"    style="width:130px;" />
     <input type="text" id="add-class" placeholder="班級（如：三甲）" style="width:120px;" />
-    <button class="btn btn-add" onclick="addStudent()">＋ 新增</button>
+    <button class="btn btn-add"    onclick="addStudent()">＋ 新增</button>
     <button class="btn btn-import" onclick="openImport()">📋 匯入名單</button>
     <button class="btn" onclick="markAll('present')">全部到班</button>
     <button class="btn" onclick="resetAll()">清除點名</button>
@@ -174,7 +190,6 @@
       <button class="mtab active" onclick="switchMTab('tab-file',this)">上傳 Excel / CSV</button>
       <button class="mtab" onclick="switchMTab('tab-paste',this)">貼上文字</button>
     </div>
-
     <div id="tab-file" class="tab-panel active">
       <div class="upload-zone" id="upload-zone"
            onclick="document.getElementById('file-input').click()"
@@ -182,8 +197,8 @@
            ondragleave="this.classList.remove('drag')"
            ondrop="handleDrop(event)">
         <div style="font-size:28px;">📂</div>
-        <p>點擊或拖曳檔案到此處</p>
-        <small>支援 .xlsx、.xls、.csv 格式</small>
+        <p style="font-size:14px;color:var(--text2);margin-top:8px;">點擊或拖曳檔案到此處</p>
+        <small style="font-size:12px;color:var(--text3);">支援 .xlsx、.xls、.csv 格式</small>
       </div>
       <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileInput(event)" />
       <div id="col-map-area" style="display:none;">
@@ -191,20 +206,16 @@
           <span>姓名欄位：</span><select id="col-name" onchange="buildPreview()"></select>
           <span style="margin-left:8px;">班級欄位：</span><select id="col-class" onchange="buildPreview()"></select>
         </div>
-        <div class="preview-wrap">
-          <table class="preview-table" id="preview-table"></table>
-        </div>
+        <div class="preview-wrap"><table class="preview-table" id="preview-table"></table></div>
         <div class="import-result" id="file-result"></div>
       </div>
     </div>
-
     <div id="tab-paste" class="tab-panel">
       <p class="paste-hint">每行一位學生，格式：<code>姓名</code> 或 <code>姓名,班級</code></p>
-      <p class="paste-hint" style="margin-bottom:10px;">範例：<code>王小明,三甲</code> 或只輸入 <code>王小明</code></p>
-      <textarea id="paste-area" placeholder="王小明,三甲&#10;林佳慧,三甲&#10;陳建宇,三乙&#10;黃雅婷"></textarea>
+      <p class="paste-hint" style="margin-bottom:10px;">範例：<code>王小明,三甲</code></p>
+      <textarea id="paste-area" placeholder="王小明,三甲&#10;林佳慧,三甲&#10;陳建宇,三乙"></textarea>
       <div class="import-result" id="paste-result"></div>
     </div>
-
     <div class="modal-footer">
       <label style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px;cursor:pointer;margin-right:auto;">
         <input type="checkbox" id="chk-replace" /> 取代現有名單
@@ -215,136 +226,212 @@
   </div>
 </div>
 
-<script>
-const STORAGE_KEY = 'ankinder_v2';
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, update, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCCIJ9hrRWaD_s26eAZrpAUbpZbdrZ2fm0",
+  authDomain: "ankinder-34783.firebaseapp.com",
+  databaseURL: "https://ankinder-34783-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "ankinder-34783",
+  storageBucket: "ankinder-34783.firebasestorage.app",
+  messagingSenderId: "287380680956",
+  appId: "1:287380680956:web:45c6b822422db8a12fe779",
+  measurementId: "G-W5TD1ZE6VH"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const studentsRef = ref(db, 'students');
+
 const statusLabel = { none:'未點名', present:'到班', absent:'缺席', leave:'請假' };
+let students = {};
+let filterStatus = 'all', searchQ = '';
+let parsedFileRows = [], fileHeaders = [];
 
-let students = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || [
-  {id:1,name:'王小明',cls:'三甲',status:'none',note:''},
-  {id:2,name:'林佳慧',cls:'三甲',status:'none',note:''},
-  {id:3,name:'陳建宇',cls:'三乙',status:'none',note:''},
-  {id:4,name:'黃雅婷',cls:'四甲',status:'none',note:''},
-  {id:5,name:'李承翰',cls:'四甲',status:'none',note:''},
-  {id:6,name:'張宜芳',cls:'三乙',status:'none',note:''},
-];
-let nextId = students.length ? Math.max(...students.map(s=>s.id))+1 : 1;
-let filterStatus='all', searchQ='';
-let parsedFileRows=[], fileHeaders=[];
-
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); }
-
-function setDateBadge(){
-  const d=new Date(), days=['日','一','二','三','四','五','六'];
-  document.getElementById('date-badge').textContent =
-    d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（週'+days[d.getDay()]+'）';
+// Sync badge
+function setSyncBadge(state) {
+  const b = document.getElementById('sync-badge');
+  b.className = 'sync-badge ' + state;
+  b.textContent = state === 'online' ? '☁️ 已同步' : state === 'syncing' ? '⏳ 同步中...' : '❌ 離線';
 }
-function updateStats(){
-  document.getElementById('total-count').textContent=students.length;
-  document.getElementById('present-count').textContent=students.filter(s=>s.status==='present').length;
-  document.getElementById('absent-count').textContent=students.filter(s=>s.status==='absent').length;
-  document.getElementById('leave-count').textContent=students.filter(s=>s.status==='leave').length;
-}
-function setFilter(f,el){
+
+// Listen for real-time changes
+onValue(studentsRef, (snapshot) => {
+  students = snapshot.val() || {};
+  setSyncBadge('online');
+  document.getElementById('loading').style.display = 'none';
+  updateStats(); render();
+}, (err) => {
+  setSyncBadge('offline');
+  document.getElementById('loading').style.display = 'none';
+});
+
+// Expose Firebase ops to global scope
+window._fbSet = async (path, data) => { setSyncBadge('syncing'); await set(ref(db, path), data); };
+window._fbUpdate = async (path, data) => { setSyncBadge('syncing'); await update(ref(db, path), data); };
+window._fbRemove = async (path) => { setSyncBadge('syncing'); await remove(ref(db, path)); };
+window._fbPush = async (path, data) => { setSyncBadge('syncing'); return await push(ref(db, path), data); };
+
+window.setStatus = async (key, status) => { await window._fbUpdate('students/'+key, { status }); };
+window.setNote   = async (key, note)   => { await window._fbUpdate('students/'+key, { note }); };
+
+window.addStudent = async () => {
+  const nameEl = document.getElementById('add-name'), clsEl = document.getElementById('add-class');
+  const name = nameEl.value.trim(), cls = clsEl.value.trim() || '未分班';
+  if (!name) { nameEl.focus(); return; }
+  await window._fbPush('students', { name, cls, status:'none', note:'' });
+  nameEl.value = ''; clsEl.value = '';
+};
+
+window.deleteStudent = async (key) => {
+  if (!confirm('確定刪除這位學生？')) return;
+  await window._fbRemove('students/'+key);
+};
+
+window.markAll = async (status) => {
+  const updates = {};
+  Object.keys(students).forEach(k => { updates['students/'+k+'/status'] = status; });
+  setSyncBadge('syncing');
+  await update(ref(db), updates);
+};
+
+window.resetAll = async () => {
+  if (!confirm('確定清除今日所有點名記錄？')) return;
+  const updates = {};
+  Object.keys(students).forEach(k => {
+    updates['students/'+k+'/status'] = 'none';
+    updates['students/'+k+'/note']   = '';
+  });
+  setSyncBadge('syncing');
+  await update(ref(db), updates);
+};
+
+window.doImport = async () => {
+  const replace = document.getElementById('chk-replace').checked;
+  const activeTab = document.querySelector('.tab-panel.active').id;
+  let newStudents = [];
+
+  if (activeTab === 'tab-file') {
+    const ni = document.getElementById('col-name').value;
+    const ci = document.getElementById('col-class').value;
+    if (ni === '') { alert('請選擇姓名欄位'); return; }
+    newStudents = parsedFileRows
+      .map(r => ({ name: String(r[ni]||'').trim(), cls: ci !== '' ? String(r[ci]||'').trim()||'未分班' : '未分班' }))
+      .filter(s => s.name);
+  } else {
+    const lines = document.getElementById('paste-area').value.split(/\r?\n/).filter(l=>l.trim());
+    newStudents = lines.map(l => {
+      const p = l.split(/[,，\t]/);
+      return { name: p[0].trim(), cls: (p[1]||'').trim()||'未分班' };
+    }).filter(s => s.name);
+  }
+
+  if (!newStudents.length) { alert('沒有找到有效的學生資料'); return; }
+
+  setSyncBadge('syncing');
+  if (replace) {
+    await set(ref(db, 'students'), null);
+    for (const s of newStudents) await window._fbPush('students', { ...s, status:'none', note:'' });
+  } else {
+    const existing = new Set(Object.values(students).map(s=>s.name));
+    const added = newStudents.filter(s => !existing.has(s.name));
+    if (!added.length) { alert('所有學生已存在名單中，無新增'); return; }
+    for (const s of added) await window._fbPush('students', { ...s, status:'none', note:'' });
+    newStudents = added;
+  }
+  closeImport();
+  alert('成功匯入 '+newStudents.length+' 位學生！');
+};
+
+// Stats & Render (use window scope so inline handlers work)
+window.updateStats = function() {
+  const arr = Object.values(students);
+  document.getElementById('total-count').textContent   = arr.length;
+  document.getElementById('present-count').textContent = arr.filter(s=>s.status==='present').length;
+  document.getElementById('absent-count').textContent  = arr.filter(s=>s.status==='absent').length;
+  document.getElementById('leave-count').textContent   = arr.filter(s=>s.status==='leave').length;
+};
+
+window.render = function() {
+  let list = Object.entries(students).map(([k,v])=>({key:k,...v}));
+  if (searchQ) list = list.filter(s=>s.name.includes(searchQ)||s.cls.includes(searchQ));
+  if (filterStatus !== 'all') list = list.filter(s=>s.status===filterStatus);
+  const tbody = document.getElementById('student-tbody'), empty = document.getElementById('empty-msg');
+  if (!list.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = list.map((s,i)=>`<tr>
+    <td style="color:var(--text2);font-size:13px;">${i+1}</td>
+    <td style="font-weight:500;">${s.name}</td>
+    <td style="font-size:13px;color:var(--text2);">${s.cls}</td>
+    <td><div class="status-btns">
+      <button class="sb ${s.status==='present'?'active-present':''}" onclick="setStatus('${s.key}','present')">到班</button>
+      <button class="sb ${s.status==='absent'?'active-absent':''}"  onclick="setStatus('${s.key}','absent')">缺席</button>
+      <button class="sb ${s.status==='leave'?'active-leave':''}"    onclick="setStatus('${s.key}','leave')">請假</button>
+    </div></td>
+    <td><input class="note-input" type="text" placeholder="備註..." value="${(s.note||'').replace(/"/g,'&quot;')}" onchange="setNote('${s.key}',this.value)" /></td>
+    <td><button class="del-btn" onclick="deleteStudent('${s.key}')">✕</button></td>
+  </tr>`).join('');
+};
+
+// Init UI
+window.setFilter = function(f,el) {
   filterStatus=f;
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active'); render();
-}
-function setStatus(id,status){
-  const s=students.find(s=>s.id===id);
-  if(s){s.status=status;save();updateStats();render();}
-}
-function setNote(id,val){
-  const s=students.find(s=>s.id===id);
-  if(s){s.note=val;save();}
-}
-function addStudent(){
-  const nameEl=document.getElementById('add-name'), clsEl=document.getElementById('add-class');
-  const name=nameEl.value.trim(), cls=clsEl.value.trim()||'未分班';
-  if(!name){nameEl.focus();return;}
-  students.push({id:nextId++,name,cls,status:'none',note:''});
-  nameEl.value='';clsEl.value='';
-  save();updateStats();render();
-}
-function deleteStudent(id){
-  if(!confirm('確定刪除這位學生？')) return;
-  students=students.filter(s=>s.id!==id);
-  save();updateStats();render();
-}
-function markAll(s){students.forEach(x=>x.status=s);save();updateStats();render();}
-function resetAll(){
-  if(!confirm('確定清除今日所有點名記錄？')) return;
-  students.forEach(s=>{s.status='none';s.note='';});save();updateStats();render();
-}
-function exportCSV(){
-  const d=new Date(), ds=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
-  let csv='\uFEFF日期,姓名,班級,狀態,備註\n';
-  students.forEach(s=>{csv+=`${ds},${s.name},${s.cls},${statusLabel[s.status]},"${s.note}"\n`;});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
-  a.download=`點名記錄_${ds}.csv`; a.click();
-}
+};
 
 document.getElementById('add-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('add-class').focus();});
 document.getElementById('add-class').addEventListener('keydown',e=>{if(e.key==='Enter')addStudent();});
 document.getElementById('search-input').addEventListener('input',function(){searchQ=this.value.trim();render();});
 
-function render(){
-  let list=students;
-  if(searchQ) list=list.filter(s=>s.name.includes(searchQ)||s.cls.includes(searchQ));
-  if(filterStatus!=='all') list=list.filter(s=>s.status===filterStatus);
-  const tbody=document.getElementById('student-tbody'), empty=document.getElementById('empty-msg');
-  if(!list.length){tbody.innerHTML='';empty.style.display='block';return;}
-  empty.style.display='none';
-  tbody.innerHTML=list.map((s,i)=>`<tr>
-    <td style="color:var(--text2);font-size:13px;">${i+1}</td>
-    <td style="font-weight:500;">${s.name}</td>
-    <td style="font-size:13px;color:var(--text2);">${s.cls}</td>
-    <td><div class="status-btns">
-      <button class="sb ${s.status==='present'?'active-present':''}" onclick="setStatus(${s.id},'present')">到班</button>
-      <button class="sb ${s.status==='absent'?'active-absent':''}" onclick="setStatus(${s.id},'absent')">缺席</button>
-      <button class="sb ${s.status==='leave'?'active-leave':''}" onclick="setStatus(${s.id},'leave')">請假</button>
-    </div></td>
-    <td><input class="note-input" type="text" placeholder="備註..." value="${s.note.replace(/"/g,'&quot;')}" oninput="setNote(${s.id},this.value)" /></td>
-    <td><button class="del-btn" onclick="deleteStudent(${s.id})">✕</button></td>
-  </tr>`).join('');
-}
+// Date badge
+const d=new Date(), days=['日','一','二','三','四','五','六'];
+document.getElementById('date-badge').textContent =
+  d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（週'+days[d.getDay()]+'）';
 
-/* ── Import Modal ── */
-function openImport(){
+// Export
+window.exportCSV = function() {
+  const d=new Date(), ds=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  let csv='\uFEFF日期,姓名,班級,狀態,備註\n';
+  Object.values(students).forEach(s=>{csv+=`${ds},${s.name},${s.cls},${statusLabel[s.status]||'未點名'},"${s.note||''}"\n`;});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`點名記錄_${ds}.csv`; a.click();
+};
+
+// Import modal helpers
+window.openImport = function(){
   parsedFileRows=[];fileHeaders=[];
   document.getElementById('col-map-area').style.display='none';
   document.getElementById('file-input').value='';
   document.getElementById('paste-area').value='';
   document.getElementById('file-result').textContent='';
-  document.getElementById('paste-result').textContent='';
   document.getElementById('chk-replace').checked=false;
   switchMTab('tab-file',document.querySelector('.mtab'));
   document.getElementById('import-modal').classList.add('open');
-}
-function closeImport(){ document.getElementById('import-modal').classList.remove('open'); }
-function closeImportOutside(e){ if(e.target.id==='import-modal') closeImport(); }
-
-function switchMTab(id,el){
+};
+window.closeImport = function(){ document.getElementById('import-modal').classList.remove('open'); };
+window.closeImportOutside = function(e){ if(e.target.id==='import-modal') closeImport(); };
+window.switchMTab = function(id,el){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  el.classList.add('active');
-}
-
-function handleDrop(e){
-  e.preventDefault();
-  document.getElementById('upload-zone').classList.remove('drag');
+  document.getElementById(id).classList.add('active'); el.classList.add('active');
+};
+window.handleDrop = function(e){
+  e.preventDefault(); document.getElementById('upload-zone').classList.remove('drag');
   const f=e.dataTransfer.files[0]; if(f) parseFile(f);
-}
-function handleFileInput(e){ const f=e.target.files[0]; if(f) parseFile(f); }
+};
+window.handleFileInput = function(e){ const f=e.target.files[0]; if(f) parseFile(f); };
 
 function parseFile(file){
   const reader=new FileReader();
   reader.onload=function(e){
     let rows=[];
     if(file.name.toLowerCase().endsWith('.csv')){
-      const text=e.target.result;
-      rows=text.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
+      rows=e.target.result.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
     } else {
       const wb=XLSX.read(e.target.result,{type:'array'});
       const ws=wb.Sheets[wb.SheetNames[0]];
@@ -353,8 +440,7 @@ function parseFile(file){
     if(!rows.length) return;
     fileHeaders=rows[0].map(String);
     parsedFileRows=rows.slice(1).filter(r=>r.some(c=>String(c).trim()));
-    buildColMap();
-    buildPreview();
+    buildColMap(); buildPreview();
     document.getElementById('col-map-area').style.display='block';
     document.getElementById('file-result').textContent='已讀取 '+parsedFileRows.length+' 筆資料';
   };
@@ -362,74 +448,33 @@ function parseFile(file){
   else reader.readAsArrayBuffer(file);
 }
 
-function buildColMap(){
+window.buildColMap = function(){
   const sel=(id,guesses)=>{
     const s=document.getElementById(id); s.innerHTML='';
     const none=document.createElement('option'); none.value=''; none.textContent='（無）'; s.appendChild(none);
-    fileHeaders.forEach((h,i)=>{
-      const o=document.createElement('option'); o.value=i; o.textContent=h||'欄位'+(i+1); s.appendChild(o);
-    });
+    fileHeaders.forEach((h,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=h||'欄位'+(i+1); s.appendChild(o); });
     const idx=fileHeaders.findIndex(h=>guesses.some(g=>String(h).includes(g)));
     s.value=idx>=0?idx:'';
   };
   sel('col-name',['姓名','名字','name','Name','學生']);
   sel('col-class',['班級','班','class','Class','年級']);
-}
+};
 
-function buildPreview(){
-  const ni=document.getElementById('col-name').value;
-  const ci=document.getElementById('col-class').value;
-  const rows=parsedFileRows.slice(0,5);
+window.buildPreview = function(){
+  const ni=document.getElementById('col-name').value, ci=document.getElementById('col-class').value;
   let html='<tr>';
   if(ni!=='') html+='<th>姓名</th>';
   if(ci!=='') html+='<th>班級</th>';
   html+='</tr>';
-  rows.forEach(r=>{
+  parsedFileRows.slice(0,5).forEach(r=>{
     html+='<tr>';
     if(ni!=='') html+='<td>'+(r[ni]||'')+'</td>';
     if(ci!=='') html+='<td>'+(r[ci]||'')+'</td>';
     html+='</tr>';
   });
   document.getElementById('preview-table').innerHTML=html;
-}
+};
 
-function doImport(){
-  const replace=document.getElementById('chk-replace').checked;
-  const activeTab=document.querySelector('.tab-panel.active').id;
-  let newStudents=[];
-
-  if(activeTab==='tab-file'){
-    const ni=document.getElementById('col-name').value;
-    const ci=document.getElementById('col-class').value;
-    if(ni===''){alert('請選擇姓名欄位');return;}
-    newStudents=parsedFileRows
-      .map(r=>({name:String(r[ni]||'').trim(), cls:ci!==''?String(r[ci]||'').trim()||'未分班':'未分班'}))
-      .filter(s=>s.name);
-  } else {
-    const lines=document.getElementById('paste-area').value.split(/\r?\n/).filter(l=>l.trim());
-    newStudents=lines.map(l=>{
-      const parts=l.split(/[,，\t]/);
-      return {name:parts[0].trim(), cls:(parts[1]||'').trim()||'未分班'};
-    }).filter(s=>s.name);
-  }
-
-  if(!newStudents.length){alert('沒有找到有效的學生資料');return;}
-
-  if(replace){
-    students=newStudents.map(s=>({id:nextId++,name:s.name,cls:s.cls,status:'none',note:''}));
-  } else {
-    const existing=new Set(students.map(s=>s.name));
-    const added=newStudents.filter(s=>!existing.has(s.name));
-    if(!added.length){alert('所有學生已存在名單中，無新增');return;}
-    added.forEach(s=>students.push({id:nextId++,name:s.name,cls:s.cls,status:'none',note:''}));
-    newStudents=added;
-  }
-
-  save(); updateStats(); render(); closeImport();
-  alert('成功匯入 '+newStudents.length+' 位學生！');
-}
-
-setDateBadge(); updateStats(); render();
 </script>
 </body>
 </html>
