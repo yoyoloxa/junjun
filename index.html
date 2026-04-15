@@ -13,8 +13,9 @@
     --teal: #1D9E75; --teal-light: #E1F5EE; --teal-dark: #085041;
   }
   body { font-family: -apple-system, sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
-  .app { max-width: 900px; margin: 0 auto; background: var(--bg); min-height: 100vh; box-shadow: 0 0 0 0.5px var(--border); }
+  .app { max-width: 800px; margin: 0 auto; background: var(--bg); min-height: 100vh; box-shadow: 0 0 0 0.5px var(--border); }
   
+  /* 主導覽列 */
   .main-nav { display: flex; background: #e0e0e0; padding: 5px; gap: 5px; }
   .nav-btn { flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-weight: bold; border-radius: 8px; color: var(--text2); }
   .nav-btn.active { background: white; color: var(--text); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -22,23 +23,25 @@
   .page { display: none; padding: 1rem; }
   .page.active { display: block; }
 
+  /* 通用樣式 */
   .header { padding: 1rem 0; display: flex; justify-content: space-between; align-items: center; }
   .toolbar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
   .btn { padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border2); background: white; cursor: pointer; font-size: 14px; }
   .btn-primary { background: var(--teal-light); color: var(--teal-dark); border-color: #5DCAA5; font-weight: bold; }
   input, select { padding: 8px; border-radius: 8px; border: 1px solid var(--border2); outline: none; }
 
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
-  td, th { padding: 12px 8px; border-bottom: 1px solid var(--border); text-align: center; }
-  th { background: #fafafa; font-size: 14px; color: var(--text2); }
-  .name-td { font-size: 18px; font-weight: 800; text-align: left; width: 120px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  td, th { padding: 15px 10px; border-bottom: 1px solid var(--border); text-align: center; }
+  .name-td { font-size: 20px; font-weight: 800; text-align: left; }
   
-  .sb { width: 55px; padding: 10px 0; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-weight: bold; font-size: 13px; }
+  /* 點名按鈕 */
+  .sb { width: 60px; padding: 12px 0; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-weight: bold; cursor: pointer; }
   .sb.active-present { background: #22c55e; color: white; border-color: #22c55e; }
   .sb.active-absent  { background: #ef4444; color: white; border-color: #ef4444; }
   .sb.active-leave   { background: #f59e0b; color: white; border-color: #f59e0b; }
 
-  .score-input { width: 100%; max-width: 70px; text-align: center; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-weight: bold; }
+  /* 成績輸入 */
+  .score-input { width: 65px; text-align: center; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-weight: bold; }
   .high { background: #e1f5ee; color: #085041; } 
   .low { background: #faece7; color: #712B13; }
 
@@ -59,7 +62,7 @@
     <div class="toolbar">
       <input type="text" id="roll-search" placeholder="搜尋姓名..." style="flex:1" oninput="renderRollTable()">
       <button class="btn btn-primary" onclick="openImport('roll')">匯入點名單</button>
-      <button class="btn" onclick="resetRollStatus()" style="color:red">重置狀態</button>
+      <button class="btn" onclick="resetRollStatus()" style="color:red">重置點名</button>
     </div>
     <table><tbody id="roll-tbody"></tbody></table>
   </div>
@@ -75,17 +78,15 @@
       <select id="exam-sel" onchange="renderScoreTable()">
         <option value="期中考">期中考</option><option value="期末考">期末考</option>
       </select>
+      <select id="subject-sel" onchange="renderScoreTable()">
+        <option value="國語">國語</option><option value="數學">數學</option>
+        <option value="英文">英文</option><option value="自然">自然</option>
+        <option value="社會">社會</option>
+      </select>
       <button class="btn btn-primary" onclick="openImport('score')">匯入成績名單</button>
     </div>
-    <table id="score-table">
-      <thead>
-        <tr>
-          <th style="text-align:left; width:120px">姓名</th>
-          <th>國語</th>
-          <th>英文</th>
-          <th>數學</th>
-        </tr>
-      </thead>
+    <table>
+      <thead><tr><th style="text-align:left">姓名</th><th>成績</th><th>評語</th></tr></thead>
       <tbody id="score-tbody"></tbody>
     </table>
   </div>
@@ -110,7 +111,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCCIJ9hrRWaD_s26eAZrpAUbpZbdrZ2fm0",
@@ -128,9 +129,10 @@ const db = getDatabase(app);
 let rollStudents = {};
 let scoreStudents = {};
 let scoresData = {};
-let importTarget = 'roll';
+let importTarget = 'roll'; // 'roll' 或 'score'
 let parsedRows = [];
 
+// 監聽不同的路徑
 onValue(ref(db, 'students/roll_call'), (snap) => { rollStudents = snap.val() || {}; renderRollTable(); });
 onValue(ref(db, 'students/score_mgr'), (snap) => { scoreStudents = snap.val() || {}; renderScoreTable(); });
 onValue(ref(db, 'scores'), (snap) => { scoresData = snap.val() || {}; renderScoreTable(); });
@@ -146,4 +148,117 @@ window.showPage = (id) => {
 // --- 點名邏輯 ---
 window.setRollStatus = async (key, status) => {
   const current = rollStudents[key].status || 'none';
-  const newStatus = (current === status) ? 'none
+  const newStatus = (current === status) ? 'none' : status;
+  await update(ref(db, `students/roll_call/${key}`), { status: newStatus });
+};
+
+window.renderRollTable = () => {
+  const tbody = document.getElementById('roll-tbody');
+  const q = document.getElementById('roll-search').value.trim();
+  let list = Object.entries(rollStudents).map(([k,v])=>({k,...v})).sort((a,b)=>(a.order||0)-(b.order||0));
+  if(q) list = list.filter(s => s.name.includes(q));
+
+  tbody.innerHTML = list.map(s => `
+    <tr>
+      <td class="name-td">${s.name}</td>
+      <td style="display:flex; gap:6px; justify-content:center">
+        <button class="sb ${s.status==='present'?'active-present':''}" onclick="setRollStatus('${s.k}','present')">接到</button>
+        <button class="sb ${s.status==='absent'?'active-absent':''}" onclick="setRollStatus('${s.k}','absent')">缺席</button>
+        <button class="sb ${s.status==='leave'?'active-leave':''}" onclick="setRollStatus('${s.k}','leave')">請假</button>
+      </td>
+    </tr>
+  `).join('');
+};
+
+window.resetRollStatus = async () => {
+  if(!confirm('重置所有點名狀態？')) return;
+  const ups = {}; Object.keys(rollStudents).forEach(k => ups[`students/roll_call/${k}/status`] = 'none');
+  await update(ref(db), ups);
+};
+
+// --- 成績邏輯 ---
+window.saveScoreValue = (key, val) => {
+  const g = document.getElementById('grade-sel').value;
+  const e = document.getElementById('exam-sel').value;
+  const s = document.getElementById('subject-sel').value;
+  set(ref(db, `scores/${g}/${e}/${s}/${key}`), val === '' ? null : parseFloat(val));
+};
+
+window.renderScoreTable = () => {
+  const g = document.getElementById('grade-sel').value;
+  const e = document.getElementById('exam-sel').value;
+  const s = document.getElementById('subject-sel').value;
+  const tbody = document.getElementById('score-tbody');
+  
+  const list = Object.entries(scoreStudents)
+               .filter(([,v]) => String(v.grade) === g)
+               .map(([k,v])=>({k,...v}))
+               .sort((a,b)=>(a.order||0)-(b.order||0));
+
+  tbody.innerHTML = list.map(st => {
+    const val = scoresData?.[g]?.[e]?.[s]?.[st.k] ?? '';
+    return `
+      <tr>
+        <td style="text-align:left; font-weight:bold">${st.name}</td>
+        <td><input type="number" class="score-input ${val>=90?'high':val!=''&&val<60?'low':''}" 
+             value="${val}" onchange="saveScoreValue('${st.k}', this.value)"></td>
+        <td style="font-size:12px; color:gray">${val===''?'--':val>=60?'及格':'需加強'}</td>
+      </tr>
+    `;
+  }).join('');
+};
+
+// --- 匯入功能 ---
+window.openImport = (target) => {
+  importTarget = target;
+  document.getElementById('modal-title').textContent = target === 'roll' ? '匯入接送名單' : '匯入成績名單';
+  document.getElementById('grade-col-box').style.display = target === 'roll' ? 'none' : 'block';
+  document.getElementById('import-modal').style.display='flex';
+};
+
+window.closeImport = () => document.getElementById('import-modal').style.display='none';
+
+window.handleFile = (input) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    parsedRows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+    const headers = parsedRows[0];
+    const nSel = document.getElementById('col-name-sel');
+    const gSel = document.getElementById('col-grade-sel');
+    const opts = headers.map((h, i) => `<option value="${i}">${h || '欄位'+(i+1)}</option>`).join('');
+    nSel.innerHTML = opts; gSel.innerHTML = opts;
+    document.getElementById('col-select-area').style.display = 'block';
+  };
+  reader.readAsArrayBuffer(input.files[0]);
+};
+
+window.confirmImport = async () => {
+  const path = importTarget === 'roll' ? 'students/roll_call' : 'students/score_mgr';
+  if(!confirm(`這將覆蓋現有的${importTarget==='roll'?'接送':'成績'}名單，確定嗎？`)) return;
+  
+  const nIdx = document.getElementById('col-name-sel').value;
+  const gIdx = document.getElementById('col-grade-sel').value;
+  const newData = {};
+  
+  parsedRows.slice(1).forEach((row, i) => {
+    const name = String(row[nIdx]||'').trim();
+    if(name) {
+      const item = { name, status: 'none', order: i + 1 };
+      if(importTarget === 'score') {
+        const grade = String(row[gIdx]||'').replace(/[^0-9]/g, '');
+        item.grade = grade || '1';
+      }
+      newData['s_'+Date.now()+'_'+i] = item;
+    }
+  });
+  
+  await set(ref(db, path), newData);
+  closeImport();
+  alert('匯入成功！');
+};
+</script>
+</body>
+</html>
