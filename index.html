@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>安親班管理系統</title>
+<title>安親班雙系統管理</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -15,7 +15,7 @@
   body { font-family: -apple-system, sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
   .app { max-width: 800px; margin: 0 auto; background: var(--bg); min-height: 100vh; box-shadow: 0 0 0 0.5px var(--border); }
   
-  /* 主選單切換 */
+  /* 主導覽列 */
   .main-nav { display: flex; background: #e0e0e0; padding: 5px; gap: 5px; }
   .nav-btn { flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-weight: bold; border-radius: 8px; color: var(--text2); }
   .nav-btn.active { background: white; color: var(--text); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -30,16 +30,17 @@
   .btn-primary { background: var(--teal-light); color: var(--teal-dark); border-color: #5DCAA5; font-weight: bold; }
   input, select { padding: 8px; border-radius: 8px; border: 1px solid var(--border2); outline: none; }
 
-  /* 點名表格樣式 */
   table { width: 100%; border-collapse: collapse; margin-top: 10px; }
   td, th { padding: 15px 10px; border-bottom: 1px solid var(--border); text-align: center; }
   .name-td { font-size: 20px; font-weight: 800; text-align: left; }
+  
+  /* 點名按鈕 */
   .sb { width: 60px; padding: 12px 0; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-weight: bold; cursor: pointer; }
   .sb.active-present { background: #22c55e; color: white; border-color: #22c55e; }
   .sb.active-absent  { background: #ef4444; color: white; border-color: #ef4444; }
   .sb.active-leave   { background: #f59e0b; color: white; border-color: #f59e0b; }
 
-  /* 成績表格樣式 */
+  /* 成績輸入 */
   .score-input { width: 65px; text-align: center; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-weight: bold; }
   .high { background: #e1f5ee; color: #085041; } 
   .low { background: #faece7; color: #712B13; }
@@ -52,29 +53,22 @@
 
 <div class="app">
   <nav class="main-nav">
-    <button class="nav-btn active" onclick="showPage('roll-call')">接送點名</button>
-    <button class="nav-btn" onclick="showPage('score-mgr')">成績登記</button>
+    <button class="nav-btn active" id="btn-roll" onclick="showPage('roll-call')">接送點名</button>
+    <button class="nav-btn" id="btn-score" onclick="showPage('score-mgr')">成績登記</button>
   </nav>
 
   <div id="roll-call" class="page active">
-    <div class="header">
-      <h2 id="date-title">今日點名</h2>
-      <div style="font-size:12px; color:gray;">雲端連線中...</div>
-    </div>
-    
+    <div class="header"><h2>今日點名系統</h2></div>
     <div class="toolbar">
-      <input type="text" id="search-input" placeholder="搜尋姓名..." style="flex:1">
-      <button class="btn" onclick="openImport()">匯入名單</button>
-      <button class="btn" onclick="resetStatus()" style="color:red">重置點名</button>
+      <input type="text" id="roll-search" placeholder="搜尋姓名..." style="flex:1" oninput="renderRollTable()">
+      <button class="btn btn-primary" onclick="openImport('roll')">匯入點名單</button>
+      <button class="btn" onclick="resetRollStatus()" style="color:red">重置點名</button>
     </div>
-
-    <table>
-      <tbody id="roll-tbody"></tbody>
-    </table>
+    <table><tbody id="roll-tbody"></tbody></table>
   </div>
 
   <div id="score-mgr" class="page">
-    <div class="header"><h2>成績登記系統</h2></div>
+    <div class="header"><h2>成績名單系統</h2></div>
     <div class="toolbar">
       <select id="grade-sel" onchange="renderScoreTable()">
         <option value="1">一年級</option><option value="2">二年級</option>
@@ -89,11 +83,10 @@
         <option value="英文">英文</option><option value="自然">自然</option>
         <option value="社會">社會</option>
       </select>
+      <button class="btn btn-primary" onclick="openImport('score')">匯入成績名單</button>
     </div>
     <table>
-      <thead>
-        <tr><th style="text-align:left">姓名</th><th>成績</th><th>評語</th></tr>
-      </thead>
+      <thead><tr><th style="text-align:left">姓名</th><th>成績</th><th>評語</th></tr></thead>
       <tbody id="score-tbody"></tbody>
     </table>
   </div>
@@ -101,14 +94,16 @@
 
 <div id="import-modal" class="modal">
   <div class="modal-content">
-    <h3>匯入名單 (將覆蓋現有資料)</h3>
+    <h3 id="modal-title">匯入名單</h3>
     <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFile(this)" style="margin-top:10px">
     <div id="col-select-area" style="display:none; margin-top:15px">
       <p style="font-size:12px">選擇「姓名」欄位：</p>
       <select id="col-name-sel" style="width:100%"></select>
-      <p style="font-size:12px; margin-top:10px">選擇「年級」欄位：</p>
-      <select id="col-grade-sel" style="width:100%"></select>
-      <button class="btn btn-primary" style="width:100%; margin-top:15px" onclick="confirmImport()">確認匯入並排好順序</button>
+      <div id="grade-col-box">
+        <p style="font-size:12px; margin-top:10px">選擇「年級」欄位：</p>
+        <select id="col-grade-sel" style="width:100%"></select>
+      </div>
+      <button class="btn btn-primary" style="width:100%; margin-top:15px" onclick="confirmImport()">確認匯入</button>
     </div>
     <button class="btn" style="width:100%; margin-top:10px" onclick="closeImport()">取消</button>
   </div>
@@ -116,7 +111,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, update, push, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCCIJ9hrRWaD_s26eAZrpAUbpZbdrZ2fm0",
@@ -131,97 +126,96 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let students = {};
-let scores = {};
-let searchQ = "";
+let rollStudents = {};
+let scoreStudents = {};
+let scoresData = {};
+let importTarget = 'roll'; // 'roll' 或 'score'
 let parsedRows = [];
 
-// 監聽 Firebase 數據
-onValue(ref(db, 'students'), (snap) => {
-  students = snap.val() || {};
-  renderRollTable();
-  renderScoreTable();
-});
+// 監聽不同的路徑
+onValue(ref(db, 'students/roll_call'), (snap) => { rollStudents = snap.val() || {}; renderRollTable(); });
+onValue(ref(db, 'students/score_mgr'), (snap) => { scoreStudents = snap.val() || {}; renderScoreTable(); });
+onValue(ref(db, 'scores'), (snap) => { scoresData = snap.val() || {}; renderScoreTable(); });
 
-onValue(ref(db, 'scores'), (snap) => {
-  scores = snap.val() || {};
-  renderScoreTable();
-});
-
-// 切換頁面
 window.showPage = (id) => {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if(id === 'roll-call') document.getElementById('btn-roll').classList.add('active');
+  else document.getElementById('btn-score').classList.add('active');
 };
 
 // --- 點名邏輯 ---
-window.setStatus = async (key, status) => {
-  const current = students[key].status || 'none';
+window.setRollStatus = async (key, status) => {
+  const current = rollStudents[key].status || 'none';
   const newStatus = (current === status) ? 'none' : status;
-  await update(ref(db, `students/${key}`), { status: newStatus });
+  await update(ref(db, `students/roll_call/${key}`), { status: newStatus });
 };
 
-function renderRollTable() {
+window.renderRollTable = () => {
   const tbody = document.getElementById('roll-tbody');
-  let list = Object.entries(students).map(([k,v])=>({k,...v}))
-             .sort((a,b)=>(a.order||0)-(b.order||0));
-  
-  if(searchQ) list = list.filter(s => s.name.includes(searchQ));
+  const q = document.getElementById('roll-search').value.trim();
+  let list = Object.entries(rollStudents).map(([k,v])=>({k,...v})).sort((a,b)=>(a.order||0)-(b.order||0));
+  if(q) list = list.filter(s => s.name.includes(q));
 
   tbody.innerHTML = list.map(s => `
     <tr>
-      <td class="name-td">${s.name} <small style="font-size:10px; color:gray">${s.grade}年</small></td>
+      <td class="name-td">${s.name}</td>
       <td style="display:flex; gap:6px; justify-content:center">
-        <button class="sb ${s.status==='present'?'active-present':''}" onclick="setStatus('${s.k}','present')">接到</button>
-        <button class="sb ${s.status==='absent'?'active-absent':''}" onclick="setStatus('${s.k}','absent')">缺席</button>
-        <button class="sb ${s.status==='leave'?'active-leave':''}" onclick="setStatus('${s.k}','leave')">請假</button>
+        <button class="sb ${s.status==='present'?'active-present':''}" onclick="setRollStatus('${s.k}','present')">接到</button>
+        <button class="sb ${s.status==='absent'?'active-absent':''}" onclick="setRollStatus('${s.k}','absent')">缺席</button>
+        <button class="sb ${s.status==='leave'?'active-leave':''}" onclick="setRollStatus('${s.k}','leave')">請假</button>
       </td>
     </tr>
   `).join('');
-}
+};
 
-window.resetStatus = async () => {
-  if(!confirm('要將點名狀態重置為空白嗎？')) return;
-  const ups = {}; Object.keys(students).forEach(k => ups[`students/${k}/status`] = 'none');
+window.resetRollStatus = async () => {
+  if(!confirm('重置所有點名狀態？')) return;
+  const ups = {}; Object.keys(rollStudents).forEach(k => ups[`students/roll_call/${k}/status`] = 'none');
   await update(ref(db), ups);
 };
 
 // --- 成績邏輯 ---
-window.saveScore = (key, val) => {
+window.saveScoreValue = (key, val) => {
   const g = document.getElementById('grade-sel').value;
   const e = document.getElementById('exam-sel').value;
   const s = document.getElementById('subject-sel').value;
   set(ref(db, `scores/${g}/${e}/${s}/${key}`), val === '' ? null : parseFloat(val));
 };
 
-function renderScoreTable() {
+window.renderScoreTable = () => {
   const g = document.getElementById('grade-sel').value;
   const e = document.getElementById('exam-sel').value;
   const s = document.getElementById('subject-sel').value;
   const tbody = document.getElementById('score-tbody');
   
-  const list = Object.entries(students)
+  const list = Object.entries(scoreStudents)
                .filter(([,v]) => String(v.grade) === g)
                .map(([k,v])=>({k,...v}))
                .sort((a,b)=>(a.order||0)-(b.order||0));
 
   tbody.innerHTML = list.map(st => {
-    const val = scores?.[g]?.[e]?.[s]?.[st.k] ?? '';
+    const val = scoresData?.[g]?.[e]?.[s]?.[st.k] ?? '';
     return `
       <tr>
         <td style="text-align:left; font-weight:bold">${st.name}</td>
         <td><input type="number" class="score-input ${val>=90?'high':val!=''&&val<60?'low':''}" 
-             value="${val}" placeholder="--" onchange="saveScore('${st.k}', this.value)"></td>
+             value="${val}" onchange="saveScoreValue('${st.k}', this.value)"></td>
         <td style="font-size:12px; color:gray">${val===''?'--':val>=60?'及格':'需加強'}</td>
       </tr>
     `;
   }).join('');
-}
+};
 
 // --- 匯入功能 ---
-window.openImport = () => document.getElementById('import-modal').style.display='flex';
+window.openImport = (target) => {
+  importTarget = target;
+  document.getElementById('modal-title').textContent = target === 'roll' ? '匯入接送名單' : '匯入成績名單';
+  document.getElementById('grade-col-box').style.display = target === 'roll' ? 'none' : 'block';
+  document.getElementById('import-modal').style.display='flex';
+};
+
 window.closeImport = () => document.getElementById('import-modal').style.display='none';
 
 window.handleFile = (input) => {
@@ -234,35 +228,37 @@ window.handleFile = (input) => {
     const headers = parsedRows[0];
     const nSel = document.getElementById('col-name-sel');
     const gSel = document.getElementById('col-grade-sel');
-    const options = headers.map((h, i) => `<option value="${i}">${h || '欄位'+(i+1)}</option>`).join('');
-    nSel.innerHTML = options; gSel.innerHTML = options;
+    const opts = headers.map((h, i) => `<option value="${i}">${h || '欄位'+(i+1)}</option>`).join('');
+    nSel.innerHTML = opts; gSel.innerHTML = opts;
     document.getElementById('col-select-area').style.display = 'block';
   };
   reader.readAsArrayBuffer(input.files[0]);
 };
 
 window.confirmImport = async () => {
-  if(!confirm('這將覆蓋現有名單，確定嗎？')) return;
+  const path = importTarget === 'roll' ? 'students/roll_call' : 'students/score_mgr';
+  if(!confirm(`這將覆蓋現有的${importTarget==='roll'?'接送':'成績'}名單，確定嗎？`)) return;
+  
   const nIdx = document.getElementById('col-name-sel').value;
   const gIdx = document.getElementById('col-grade-sel').value;
-  const newSts = {};
+  const newData = {};
+  
   parsedRows.slice(1).forEach((row, i) => {
     const name = String(row[nIdx]||'').trim();
-    const grade = String(row[gIdx]||'').replace(/[^0-9]/g, '');
-    if(name) newSts['s_'+Date.now()+'_'+i] = { 
-      name, 
-      grade: grade||'1', 
-      status: 'none', 
-      order: i + 1  // 保持 Excel 原始順序
-    };
+    if(name) {
+      const item = { name, status: 'none', order: i + 1 };
+      if(importTarget === 'score') {
+        const grade = String(row[gIdx]||'').replace(/[^0-9]/g, '');
+        item.grade = grade || '1';
+      }
+      newData['s_'+Date.now()+'_'+i] = item;
+    }
   });
-  await set(ref(db, 'students'), newSts);
+  
+  await set(ref(db, path), newData);
   closeImport();
-  alert('名單匯入成功！已同步更新至點名與成績系統。');
+  alert('匯入成功！');
 };
-
-document.getElementById('search-input').oninput = (e) => { searchQ = e.target.value.trim(); renderRollTable(); };
-document.getElementById('date-title').textContent = (new Date().getMonth()+1) + '/' + new Date().getDate() + ' 接送名單';
 </script>
 </body>
 </html>
